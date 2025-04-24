@@ -1,0 +1,23 @@
+{
+  "name": "gps",
+  "version": "1.0.0",
+  "description": "",
+  "main": "REST.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mhmoud-Atiyah/GPS-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mhmoud-Atiyah/GPS-System/issues"
+  },
+  "homepage": "https://github.com/Mhmoud-Atiyah/GPS-System#readme",
+  "dependencies": {
+    "ws": "^8.18.1"
+  }
+}

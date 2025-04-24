@@ -4,16 +4,18 @@ project(gps)
 set(CMAKE_CXX_STANDARD 23)
 #add_definitions(-DMCU)
 
-include_directories(include unit net libs assets/TinyGPSPlus/src)
+include_directories(include unit net libs libs/TinyGPSPlus/src)
 add_executable(gps
         libs/logger.cpp
-        assets/TinyGPSPlus/src/TinyGPS++.cpp
+        libs/TinyGPSPlus/src/TinyGPS++.cpp
+        net/mongoose.c
         net/net.cpp
         unit/unit.cpp
         MCU.cpp
         server.cpp
-        client.cpp
-        net/net.h
-        unit/sensor.cpp
-        unit/sensor.h
+        "unit/io.cpp"
+        include/packet.h
+        net/packet.cpp
 )
+find_package(Boost REQUIRED COMPONENTS system thread)
+target_link_libraries(gps PRIVATE Boost::system Boost::thread pthread)

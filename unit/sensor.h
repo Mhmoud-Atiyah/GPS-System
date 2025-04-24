@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-struct Sensor {
+struct IO {
     uint32_t deviceId;
 
     // Timestamp of when the data was recorded
@@ -25,14 +25,14 @@ struct Sensor {
     uint8_t statusFlags;
 
     // Constructor to initialize the sensor data
-    Sensor(uint32_t
-           id,
-           uint64_t ts,
-           float temp,
-           float hum,
-           float press,
-           float volt, uint8_t
-           status)
+    IO(uint32_t
+       id,
+       uint64_t ts,
+       float temp,
+       float hum,
+       float press,
+       float volt, uint8_t
+       status)
             :
 
             deviceId(id), timestamp(ts), temperature(temp), humidity(hum), pressure(press), voltage(volt),
