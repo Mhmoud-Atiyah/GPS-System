@@ -1,0 +1,20 @@
+ //    "header type  CMD     ID_IMEI       length   Data   checksum ";
+    //     "FEET   01    13  12340008     2333   435363     A9    ";
+    // Create a packet from a hex string
+    std::string hex_string = "FEEF0216000007CF000B68656C6C6F20776F726C64F7";
+    Packet packet = Packet::parsePacket(hex_string);
+    // Print the packet
+    packet.printPacket();
+    // Create a packet using the new constructor
+    uint8_t type = 2;
+    uint8_t command = 22;
+    int deviceId = 1999;
+    std::string data = "hello world";
+    Packet rec_packet(type, command, deviceId, data.size(), data);
+
+    // Create a hex string from the packet object
+    std::string createdPacketHex = rec_packet.createPacket();
+    std::cout << "Created Packet Hex: " << createdPacketHex << std::endl;
+
+
+    <<MSG>>FEEF011234000831000468656C6CAF<<END>>

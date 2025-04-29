@@ -41,7 +41,7 @@ defined in linker script */
 .word _sdata
 /* end address for the .data section. defined in linker script */
 .word _edata
-/* start address for the .bss section. defined in linker script */
+/* run address for the .bss section. defined in linker script */
 .word _sbss
 /* end address for the .bss section. defined in linker script */
 .word _ebss

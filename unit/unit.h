@@ -6,6 +6,11 @@
 #define PULSE_TIME 3 // default pulse wait
 #define PARSER_Wait 2 // default PARSER wait
 
+
+// Data Types
+#define receivedDataQueue_HANDSHAKE "HS"
+#define receivedDataQueue_LOCATION "LOC"
+
 #include <iostream>
 #include <fstream>
 #include <strstream>
@@ -29,8 +34,7 @@ using boost::asio::ip::tcp;
 using namespace gps;
 
 namespace gps {
-    static Queue<std::string, QUEUE_SIZE> receivedDataQueue;
-    static Queue<uint32_t, QUEUE_SIZE> receivedIOQueue;
+    static Queue<std::array<std::string, 2>, QUEUE_SIZE> receivedDataQueue;
 
     /*
      * @NOTE: Connect MKR GPS Shield module based on (u-blox SAM-M8Q GNSS)
@@ -47,7 +51,7 @@ namespace gps {
 
         void sendCommand(uint8_t *command, uint8_t length);
 
-        std::string receiveGPSData();
+        std::string receiveDeviceData();
 
         //TODO: delete after testing
         std::ifstream gpsDataFile;  // File to simulate GPS data input
@@ -60,53 +64,59 @@ namespace gps {
      * */
     class unit {
     public:
-        explicit unit(const char *unitId, boost::asio::io_context &io, const std::string &host, const std::string &port)
-                : ID(unitId), socket_(io), resolver_(io), host_(host), port_(port) {
+        explicit unit(const char *unitId, const int id, boost::asio::io_context &io, const std::string &host,
+                      const std::string &port)
+                : ID_IMEI(unitId), ID(id), socket_(io), resolver_(io), host_(host), port_(port) {
             std::stringstream ss;
-            ss << "Creating unit with IMEI: " << ID << "\n";
+            ss << "Creating unit with IMEI: " << ID_IMEI;
             Logger::log(LogLevel::WARNING, "Unit", ss.str());
-            //TODO: Check H.W ==> connections
         };
 
         ~unit() {
-            if (gnssThread.joinable()) {
-                gnssThread.join();
-            }
+            if (gnssThread.joinable()) gnssThread.join();
+            if (NETThread.joinable()) NETThread.join();
         }
 
         void Parser() {
             Logger::log(LogLevel::WARNING, "Parser", "Starting Parsing Service\n");
         }
 
-        void parse();
+        void parse(const char *str);
 
         void startGNSS() {
             gnssThread = std::thread(&unit::initializeGNSS, this);
         }
 
-        void startNet();
+        void startNet() {
+            NETThread = std::thread(&unit::initializeNET, this);
+        };
+
+        void initializeNET();
 
         bool connect();
 
-        void start(gps::unit &cp);
+        void run(gps::unit &U);
 
         void send(const std::string &message);
 
         std::string receive();
 
-
+        std::stringstream dataToSend;// message buffer
     private:
-        const char *ID;// IMEI of Device
+        const char *ID_IMEI;// IMEI of Device
+        const int ID;// ID of Device
         std::thread gnssThread;    // Thread for GNSS initialization
+        std::thread NETThread;    // Thread for NET initialization
         TinyGPSPlus parser; // NMEA stream Parser
         tcp::socket socket_;
         tcp::resolver resolver_;
         std::string host_;
         std::string port_;
+        Packet pkt;
 
         void initializeGNSS() {
-            Logger::log(WARNING, "GNSS", "Starting GNSS Quectel LC76G Module in Simulation Mode\n");
-            GNSS gnss(this->ID);
+            Logger::log(WARNING, "GNSS", "Starting GNSS Quectel LC76G Module in Simulation Mode");
+            GNSS gnss(this->ID_IMEI);
             // open GNSS Listener
             gnss.initialize();
         }

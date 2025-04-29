@@ -1022,7 +1022,7 @@ void mg_log_set_fn(mg_pfn_t fn, void *param);
 
 
 struct mg_timer {
-  unsigned long id;         // Timer ID
+  unsigned long id;         // Timer ID_IMEI
   uint64_t period_ms;       // Timer period in milliseconds
   uint64_t expire;          // Expiration timestamp in milliseconds
   unsigned flags;           // Possible flags values below
@@ -2139,7 +2139,7 @@ enum {
   MG_EV_MQTT_OPEN,  // MQTT CONNACK received        int *connack_status_code
   MG_EV_SNTP_TIME,  // SNTP time received           uint64_t *epoch_millis
   MG_EV_WAKEUP,     // mg_wakeup() data received    struct mg_str *data
-  MG_EV_USER        // Starting ID for user events
+  MG_EV_USER        // Starting ID_IMEI for user events
 };
 
 
@@ -2159,7 +2159,7 @@ struct mg_dns {
 struct mg_addr {
   uint8_t ip[16];    // Holds IPv4 or IPv6 address, in network byte order
   uint16_t port;     // TCP or UDP port in network byte order
-  uint8_t scope_id;  // IPv6 scope ID
+  uint8_t scope_id;  // IPv6 scope ID_IMEI
   bool is_ip6;       // True when address is IPv6 address
 };
 
@@ -2169,8 +2169,8 @@ struct mg_mgr {
   struct mg_dns dns6;           // DNS for IPv6
   int dnstimeout;               // DNS resolve timeout in milliseconds
   bool use_dns6;                // Use DNS6 server by default, see #1532
-  unsigned long nextid;         // Next connection ID
-  unsigned long timerid;        // Next timer ID
+  unsigned long nextid;         // Next connection ID_IMEI
+  unsigned long timerid;        // Next timer ID_IMEI
   void *userdata;               // Arbitrary user data pointer
   void *tls_ctx;                // TLS context shared by all TLS sessions
   uint16_t mqtt_id;             // MQTT IDs for pub/sub
@@ -2191,7 +2191,7 @@ struct mg_connection {
   struct mg_addr loc;          // Local address
   struct mg_addr rem;          // Remote address
   void *fd;                    // Connected socket, or LWIP data
-  unsigned long id;            // Auto-incrementing unique connection ID
+  unsigned long id;            // Auto-incrementing unique connection ID_IMEI
   struct mg_iobuf recv;        // Incoming data
   struct mg_iobuf send;        // Outgoing data
   struct mg_iobuf prof;        // Profile data enabled by MG_ENABLE_PROFILE
@@ -2509,7 +2509,7 @@ struct mg_mqtt_prop {
 struct mg_mqtt_opts {
   struct mg_str user;               // Username, can be empty
   struct mg_str pass;               // Password, can be empty
-  struct mg_str client_id;          // Client ID
+  struct mg_str client_id;          // Client ID_IMEI
   struct mg_str topic;              // message/subscription topic
   struct mg_str message;            // message content
   uint8_t qos;                      // message quality of service
@@ -2532,7 +2532,7 @@ struct mg_mqtt_message {
   uint8_t cmd;          // MQTT command, one of MQTT_CMD_*
   uint8_t qos;          // Quality of service
   uint8_t ack;          // CONNACK return code, 0 = success
-  size_t props_start;   // Offset to the start of the properties (MQTT5)
+  size_t props_start;   // Offset to the run of the properties (MQTT5)
   size_t props_size;    // Length of the properties
 };
 
@@ -2562,14 +2562,14 @@ size_t mg_mqtt_next_prop(struct mg_mqtt_message *, struct mg_mqtt_prop *,
 // Therefore, we expect zero or one answer.
 // If `resolved` is true, then `addr` contains resolved IPv4 or IPV6 address.
 struct mg_dns_message {
-  uint16_t txnid;       // Transaction ID
+  uint16_t txnid;       // Transaction ID_IMEI
   bool resolved;        // Resolve successful, addr is set
   struct mg_addr addr;  // Resolved address
   char name[256];       // Host name
 };
 
 struct mg_dns_header {
-  uint16_t txnid;  // Transaction ID
+  uint16_t txnid;  // Transaction ID_IMEI
   uint16_t flags;
   uint16_t num_questions;
   uint16_t num_answers;
@@ -2712,7 +2712,7 @@ enum {
   MG_TCPIP_EV_DHCP_SNTP,  // DHCP SNTP assignment     uint32_t *ipaddr
   MG_TCPIP_EV_ARP,        // Got ARP packet           struct mg_str *
   MG_TCPIP_EV_TIMER_1S,   // 1 second timer           NULL
-  MG_TCPIP_EV_USER        // Starting ID for user events
+  MG_TCPIP_EV_USER        // Starting ID_IMEI for user events
 };
 
 // Network interface

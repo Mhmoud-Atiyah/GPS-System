@@ -10,22 +10,19 @@
 int main() {
     boost::asio::io_context io;
 
-    gps::unit U1(IMEI, io, REMOTE, PORT);
+    gps::unit U1(IMEI, ID, io, REMOTE, PORT);
     U1.startGNSS();// Start the GNSS in a separate thread
-    U1.startNet(); // start communications Module
+    U1.startNet(); // run communications Module in a separate thread
     if (U1.connect()) {
-        std::stringstream dataToSend;
-        std::string data = "Hello from Device";
-        Packet pkt(0x01, 0x01, ID, data.size(), data);
+        Packet pkt;
+        pkt(0x01, 0x01, ID, sizeof(IMEI), IMEI);
         std::string createdPacketHex = pkt.createPacket();
-        dataToSend << "<<MSG>>" << createdPacketHex << "<<END>>";
-        U1.send(dataToSend.str());
+        U1.send(wrap_message(createdPacketHex));
         std::string response = U1.receive();
-        std::cout << "Response: " << response << std::endl;
+        Logger::log(INFO, "NET", unwrap_message(response));
     }
-    U1.Parser();// (Optional Service) Log to Screen
-    // Main Loop
+    U1.Parser();
     while (true) {
-        U1.start(U1);
+        U1.run(U1);
     }
 }

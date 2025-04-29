@@ -1,4 +1,5 @@
 #include "packet.h"
+#include <algorithm>
 
 int Packet::sliceToInt(const std::vector<uint8_t> &data, int start, int end) {
     int result = 0;
@@ -35,9 +36,13 @@ std::string Packet::hex_to_utf8(const std::vector<uint8_t> &data) {
     return std::string(data.begin(), data.end());
 }
 
+std::string Packet::trim(const std::string &input) {
+    return input.substr(0, 10);  // Extract the first 10 characters
+}
+
 uint8_t Packet::computeChecksum(const std::vector<uint8_t> &data) {
     uint8_t checksum = 0x00;
-    for (uint8_t byte : data) {
+    for (uint8_t byte: data) {
         checksum ^= byte;
     }
     return checksum;
@@ -88,7 +93,7 @@ std::string Packet::createPacket() const {
     rawBytes.push_back((data_length >> 8) & 0xFF);
     rawBytes.push_back(data_length & 0xFF);
 
-    for (char c : data) {
+    for (char c: data) {
         rawBytes.push_back(static_cast<uint8_t>(c));
     }
 
@@ -97,7 +102,7 @@ std::string Packet::createPacket() const {
     // Build hex string
     std::ostringstream result;
     result << HEADER;
-    for (uint8_t byte : rawBytes) {
+    for (uint8_t byte: rawBytes) {
         result << byteToHex(byte);
     }
     result << byteToHex(checksum);  // append checksum at the end
@@ -110,6 +115,7 @@ void Packet::printPacket() const {
         std::cout << "Invalid packet.\n";
 //        return;
     }
+    std::cout << "Type        : " << static_cast<int>(type) << "\n";
     std::cout << "Command     : " << static_cast<int>(command) << "\n";
     std::cout << "Device ID   : " << deviceId << "\n";
     std::cout << "Data Length : " << data_length << "\n";

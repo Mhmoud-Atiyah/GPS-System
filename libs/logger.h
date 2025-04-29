@@ -12,12 +12,14 @@ namespace gps {
         DEBUG,
         INFO,
         WARNING,
-        ERROR
+        ERROR,
+        ALARM
     };
 
     class Logger {
     public:
         static void log(LogLevel level, const std::string &serviceName, const std::string &message);
+        static void logServer(LogLevel level, const std::string &key, const std::string &message);
 
     private:
         static std::string getLevelString(LogLevel level);

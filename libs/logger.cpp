@@ -1,13 +1,10 @@
-//
-// Created by EbnAtiyah on 1/16/25.
-//
-
 #include "logger.h"
 #include <iostream>
 #include <string>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+
 
 #ifdef _WIN32
 #include <windows.h>
@@ -28,7 +25,25 @@ void Logger::log(LogLevel level, const std::string &serviceName, const std::stri
     //TODO: LCD_print(serviceName << " (" << timestamp << "): " << message)
 #else
     std::string color = getColorForLevel(level);
-    std::cout << color << serviceName << " (" << timestamp << "): " << message << resetColor();
+    std::cout << color << serviceName << " (" << timestamp << "): " << message << resetColor() << std::endl;
+#endif
+}
+
+void Logger::logServer(LogLevel level, const std::string &key, const std::string &message) {
+    std::string levelStr = getLevelString(level);
+    std::string timestamp = getCurrentTime();
+#ifdef _WIN32
+    // Windows-specific color handling
+    if (isWindows()) {
+        enableAnsiColors();
+    }
+#endif
+#ifdef MCU
+    //TODO: LCD_print(serviceName << " (" << timestamp << "): " << message)
+#else
+    std::string color = getColorForLevel(level);
+    std::cout << color << "Received" << " (" << timestamp << "): " << key << " : " << message << resetColor()
+              << std::endl;
 #endif
 }
 
@@ -42,6 +57,8 @@ std::string Logger::getLevelString(LogLevel level) {
             return "WARNING";
         case ERROR:
             return "ERROR";
+        case ALARM:
+            return "ALARM";
         default:
             return "UNKNOWN";
     }
@@ -59,6 +76,8 @@ std::string Logger::getColorForLevel(LogLevel level) {
             return "\033[33m"; // Yellow
         case ERROR:
             return "\033[31m"; // Red
+        case ALARM:
+            return "\033[35m"; // Magenta
         default:
             return "\033[0m";  // Reset
     }

@@ -61,12 +61,15 @@ user clients via a unified server. The server handles:
 ### Build on Linux
 
 ```bash
+mkfifo EC200U_pipe # used for Network Simulation
 mkdir build && cd build
-cmake .. -DBUILD_FOR_STM32=OFF
+cmake .. -DBUILD_FOR_STM32=OFF ## Simulation Mode ##
 make
-./gps
+./server (terminal 1) # GPS Server Thread
+node REST.js (teminal 2) # Handle User Interface
+./Device (terminal 3) # Simulate GPS Device
 
-cmake .. -DBUILD_FOR_STM32=ON -DCMAKE_TOOLCHAIN_FILE=your_stm32_toolchain.cmake
+cmake .. -DBUILD_FOR_STM32=ON ## Real-Hardware Mode ##
 make
 ```
 

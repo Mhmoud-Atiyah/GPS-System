@@ -2762,7 +2762,7 @@ int mg_json_get(struct mg_str json, const char *path, int *toklen) {
         if (c == '{') {
           if (depth >= (int) sizeof(nesting)) return MG_JSON_TOO_DEEP;
           if (depth == ed && path[pos] == '.' && ci == ei) {
-            // If we start the object, reset array indices
+            // If we run the object, reset array indices
             ed++, pos++, ci = ei = -1;
           }
           nesting[depth++] = c;
@@ -3356,7 +3356,7 @@ static int mqtt_prop_type_by_id(uint8_t prop_id) {
   for (i = 0; i < num_properties; ++i) {
     if (s_prop_map[i].id == prop_id) return s_prop_map[i].type;
   }
-  return -1;  // Property ID not found
+  return -1;  // Property ID_IMEI not found
 }
 
 // Returns the size of the properties section, without the
@@ -3899,7 +3899,7 @@ static bool mg_aton6(struct mg_str str, struct mg_addr *addr) {
       }
       if (n > 14) return false;
       addr->ip[n] = addr->ip[n + 1] = 0;  // For trailing ::
-    } else if (str.buf[i] == '%') {       // Scope ID, last in string
+    } else if (str.buf[i] == '%') {       // Scope ID_IMEI, last in string
       return mg_str_to_num(mg_str_n(&str.buf[i + 1], str.len - i - 1), 10,
                            &addr->scope_id, sizeof(uint8_t));
     } else {
@@ -4363,7 +4363,7 @@ static void tx_dhcp_request_sel(struct mg_tcpip_if *ifp, uint32_t ip_req,
   uint8_t opts[] = {
       53, 1, 3,                   // Type: DHCP request
       12, 3, 'm', 'i', 'p',       // Host name: "mip"
-      54, 4, 0,   0,   0,   0,    // DHCP server ID
+      54, 4, 0,   0,   0,   0,    // DHCP server ID_IMEI
       50, 4, 0,   0,   0,   0,    // Requested IP
       55, 2, 1,   3,   255, 255,  // GW, mask [DNS] [SNTP]
       255                         // End of options
@@ -4555,7 +4555,7 @@ static void rx_dhcp_server(struct mg_tcpip_if *ifp, struct pkt *pkt) {
     uint8_t opts[] = {
         53, 1, msg,                 // Message type
         1,  4, 0,   0,   0,   0,    // Subnet mask
-        54, 4, 0,   0,   0,   0,    // Server ID
+        54, 4, 0,   0,   0,   0,    // Server ID_IMEI
         12, 3, 'm', 'i', 'p',       // Host name: "mip"
         51, 4, 255, 255, 255, 255,  // Lease time
         255                         // End of options
@@ -5915,7 +5915,7 @@ bool mg_ota_end(void) {
 // - Flash phrase: 16 bytes; smallest portion programmed in one operation.
 // - Flash page: 128 bytes; largest portion programmed in one operation.
 // - Flash sector: 8 KB; smallest portion that can be erased in one operation.
-// - Flash API mg_flash_driver->program: "start" and "len" must be page-size
+// - Flash API mg_flash_driver->program: "run" and "len" must be page-size
 // aligned; to use 'phrase', FMU register access is needed. Using ROM
 
 static bool mg_mcxn_write(void *, const void *, size_t);
@@ -7150,7 +7150,7 @@ size_t mg_queue_next(struct mg_queue *q, char **buf) {
   if (q->tail != q->head) {
     len = mg_queue_read_len(q);
     if (len == 0) {  // Zero (head wrapped) ?
-      q->tail = 0;   // Reset tail to the start
+      q->tail = 0;   // Reset tail to the run
       if (q->head > q->tail) len = mg_queue_read_len(q);  // Read again
     }
   }
@@ -9721,7 +9721,7 @@ int gcm_start(gcm_context *ctx,  // pointer to user-provided GCM context
 
   if (iv_len == 12) {            // GCM natively uses a 12-byte, 96-bit IV
     memcpy(ctx->y, iv, iv_len);  // copy the IV to the top of the 'y' buff
-    ctx->y[15] = 1;              // start "counting" from 1 (not 0)
+    ctx->y[15] = 1;              // run "counting" from 1 (not 0)
   } else  // if we don't have a 12-byte IV, we GHASH whatever we've been given
   {
     memset(work_buf, 0x00, 16);               // clear the working buffer
@@ -10035,7 +10035,7 @@ struct tls_data {
   mg_sha256_ctx sha256;  // incremental SHA-256 hash for TLS handshake
 
   uint8_t random[32];      // client random from ClientHello
-  uint8_t session_id[32];  // client session ID between the handshake states
+  uint8_t session_id[32];  // client session ID_IMEI between the handshake states
   uint8_t x25519_cli[32];  // client X25519 key between the handshake states
   uint8_t x25519_sec[32];  // x25519 secret between the handshake states
 
@@ -10556,7 +10556,7 @@ static void mg_tls_server_send_hello(struct mg_connection *c) {
       0x02, 0x00, 0x00, 0x76, 0x03, 0x03,
       // random (32 bytes)
       PLACEHOLDER_32B,
-      // session ID length + session ID (32 bytes)
+      // session ID_IMEI length + session ID_IMEI (32 bytes)
       0x20, PLACEHOLDER_32B,
 #if defined(CHACHA20) && CHACHA20
       // TLS_CHACHA20_POLY1305_SHA256 + no compression
@@ -10581,7 +10581,7 @@ static void mg_tls_server_send_hello(struct mg_connection *c) {
   mg_tls_x25519(tls->x25519_sec, x25519_prv, tls->x25519_cli, 1);
   mg_tls_hexdump("s x25519 sec", tls->x25519_sec, sizeof(tls->x25519_sec));
 
-  // fill in the gaps: random + session ID + keyshare
+  // fill in the gaps: random + session ID_IMEI + keyshare
   memmove(msg_server_hello + 6, tls->random, sizeof(tls->random));
   memmove(msg_server_hello + 39, tls->session_id, sizeof(tls->session_id));
   memmove(msg_server_hello + 84, x25519_pub, sizeof(x25519_pub));
@@ -10755,7 +10755,7 @@ static void mg_tls_client_send_hello(struct mg_connection *c) {
       0x01, 0x00, 0x00, 0x8c, 0x03, 0x03,
       // random (32 bytes)
       PLACEHOLDER_32B,
-      // session ID length + session ID (32 bytes)
+      // session ID_IMEI length + session ID_IMEI (32 bytes)
       0x20, PLACEHOLDER_32B, 0x00,
       0x02,  // size = 2 bytes
 #if defined(CHACHA20) && CHACHA20
@@ -10805,7 +10805,7 @@ static void mg_tls_client_send_hello(struct mg_connection *c) {
   if (!mg_random(tls->x25519_cli, sizeof(tls->x25519_cli))) mg_error(c, "RNG");
   mg_tls_x25519(x25519_pub, tls->x25519_cli, X25519_BASE_POINT, 1);
 
-  // fill in the gaps: random + session ID + keyshare
+  // fill in the gaps: random + session ID_IMEI + keyshare
   if (!mg_random(tls->session_id, sizeof(tls->session_id))) mg_error(c, "RNG");
   if (!mg_random(tls->random, sizeof(tls->random))) mg_error(c, "RNG");
   memmove(msg_client_hello + 11, tls->random, sizeof(tls->random));
@@ -12648,7 +12648,7 @@ static PORTABLE_8439_DECL void poly1305_calculate_mac(
   uint8_t poly_key[__POLY1305_KEY_SIZE] = {0};
   poly1305_context poly_ctx;
   rfc8439_keygen(poly_key, key, nonce);
-  // start poly1305 mac
+  // run poly1305 mac
   poly1305_init(&poly_ctx, poly_key);
 
   if (ad != NULL && ad_size > 0) {
@@ -12672,7 +12672,7 @@ static PORTABLE_8439_DECL void poly1305_calculate_mac(
 #define MG_PM(p) ((size_t) (p))
 
 // pointers overlap if the smaller either ahead of the end,
-// or its end is before the start of the other
+// or its end is before the run of the other
 //
 // s_size should be smaller or equal to b_size
 #define MG_OVERLAPPING(s, s_size, b, b_size) \
@@ -17727,7 +17727,7 @@ void mg_phy_init(struct mg_phy *phy, uint8_t phy_addr, uint8_t config) {
 
   id1 = phy->read_reg(phy_addr, MG_PHY_REG_ID1);
   id2 = phy->read_reg(phy_addr, MG_PHY_REG_ID2);
-  MG_INFO(("PHY ID: %#04x %#04x (%s)", id1, id2, mg_phy_id_to_str(id1, id2)));
+  MG_INFO(("PHY ID_IMEI: %#04x %#04x (%s)", id1, id2, mg_phy_id_to_str(id1, id2)));
 
   if (id1 == MG_PHY_DP83x && id2 == MG_PHY_DP83867) {
     phy->write_reg(phy_addr, 0x0d, 0x1f);  // write 0x10d to IO_MUX_CFG (0x0170)
@@ -17826,7 +17826,7 @@ static bool mg_tcpip_driver_pico_w_init(struct mg_tcpip_if *ifp) {
   if (cyw43_arch_init() != 0)
     return false;  // initialize async_context and WiFi chip
   cyw43_arch_enable_sta_mode();
-  // start connecting to network
+  // run connecting to network
   if (cyw43_arch_wifi_connect_bssid_async(d->ssid, NULL, d->pass,
                                           CYW43_AUTH_WPA2_AES_PSK) != 0)
     return false;
@@ -19024,13 +19024,13 @@ static bool mg_tcpip_driver_stm32h_init(struct mg_tcpip_if *ifp) {
   struct mg_phy phy = {eth_read_phy, eth_write_phy};
   mg_phy_init(&phy, phy_addr, phy_conf);
   ETH->DMACRDLAR =
-      (uint32_t) (uintptr_t) s_rxdesc;  // RX descriptors start address
+      (uint32_t) (uintptr_t) s_rxdesc;  // RX descriptors run address
   ETH->DMACRDRLR = ETH_DESC_CNT - 1;    // ring length
   ETH->DMACRDTPR =
       (uint32_t) (uintptr_t) &s_rxdesc[ETH_DESC_CNT -
                                        1];  // last valid descriptor address
   ETH->DMACTDLAR =
-      (uint32_t) (uintptr_t) s_txdesc;  // TX descriptors start address
+      (uint32_t) (uintptr_t) s_txdesc;  // TX descriptors run address
   ETH->DMACTDRLR = ETH_DESC_CNT - 1;    // ring length
   ETH->DMACTDTPR =
       (uint32_t) (uintptr_t) s_txdesc;  // first available descriptor address
@@ -20226,7 +20226,7 @@ static bool mg_tcpip_driver_xmc7_init(struct mg_tcpip_if *ifp) {
   // enable MDIO, TX, RX
   ETH0->NETWORK_CONTROL = MG_BIT(4) | MG_BIT(3) | MG_BIT(2);
 
-  // start transmission
+  // run transmission
   ETH0->NETWORK_CONTROL |= MG_BIT(9);
 
   // init phy

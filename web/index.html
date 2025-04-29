@@ -8,7 +8,8 @@
             font-family: Arial, sans-serif;
             padding: 20px;
         }
-        #log {
+
+        #log, #location {
             border: 1px solid #ccc;
             padding: 10px;
             height: 200px;
@@ -16,7 +17,8 @@
             margin-bottom: 10px;
             background: #f9f9f9;
         }
-        input, button {
+
+        input, button, select {
             padding: 10px;
             font-size: 14px;
         }
@@ -24,49 +26,109 @@
 </head>
 <body>
 
-<h2>Device Control Board</h2>
-
+<h2 style="text-align: center">Device Control Board</h2><br>
+<h2>Receiver</h2>
+<div id="location"></div>
+<h2>Sender</h2>
 <div id="log"></div>
 
-<input type="text" id="commandInput" placeholder="Enter command to send">
+<select id="commandSelect">
+    <option value="1">STOP_ENGINE</option>
+    <option value="2">REQUEST_LOCATION</option>
+    <option value="3">SOS_ALERT</option>
+    <option value="4">REBOOT</option>
+    <option value="5">CHECK_SIGNAL</option>
+    <option value="6">SET_GEO_FENCE</option>
+    <option value="7">QUERY_STATUS</option>
+    <option value="8">CONFIG_APN</option>
+    <option value="9">REQUEST_VIN</option>
+    <option value="10">ENGINE_STATUS</option>
+</select>
 <button onclick="sendCommand()">Send Command</button>
 
 <script>
-    const log = document.getElementById("log");
-    const commandInput = document.getElementById("commandInput");
+    const locationLog = document.getElementById("location");
+    const socketLog = document.getElementById("log");
+    const commandSelect = document.getElementById("commandSelect");
 
     const socket = new WebSocket("ws://localhost:3000/ws/device");
 
     socket.onopen = () => {
-        logMessage("Connected to device WebSocket...");
+        logMessage("Connected to REST WebSocket...", socketLog);
     };
-
+    // main routine
     socket.onmessage = (event) => {
-        logMessage("📡 Device says: " + event.data);
+        const pkt = JSON.parse(event.data);
+        // Handle Handshake
+        if (pkt.type === 2 && pkt.command === 1) {
+            logMessage(("Connected to device [" + pkt.deviceId + "]"), socketLog);
+        }
+        // Device Data
+        if (pkt.type === 1) {
+            if (pkt.command === 2) {
+                logMessage(("Location: " + pkt.data), locationLog);
+            } else {
+                // Handle()
+            }
+        }
     };
 
     socket.onerror = (error) => {
-        logMessage("❌ WebSocket error: " + error);
+        logMessage(("❌ WebSocket error: " + error), socketLog);
     };
 
     socket.onclose = () => {
-        logMessage("🔌 Disconnected from device");
+        logMessage(("🔌 Disconnected from device"), socketLog);
     };
 
     function sendCommand() {
-        const command = commandInput.value.trim();
-        if (command) {
-            socket.send(command);
-            logMessage("➡️ Sent command: " + command);
-            commandInput.value = "";
+        const commandValue = commandSelect.value;
+        const commandName = getCommandName(commandValue);
+        const commandCode = getCommandCode(commandValue);
+
+        if (commandValue) {
+            socket.send([commandName, commandCode.toString(16).toUpperCase()]);
+            logMessage("➡️ Sent command: " + commandName + " (Code: 0x" + commandCode.toString(16).toUpperCase() + ")", socketLog);
         }
     }
 
-    function logMessage(msg) {
+    function getCommandName(commandValue) {
+        const commands = {
+            "1": "STOP_ENGINE",
+            "2": "REQUEST_LOCATION",
+            "3": "SOS_ALERT",
+            "4": "REBOOT",
+            "5": "CHECK_SIGNAL",
+            "6": "SET_GEO_FENCE",
+            "7": "QUERY_STATUS",
+            "8": "CONFIG_APN",
+            "9": "REQUEST_VIN",
+            "10": "ENGINE_STATUS"
+        };
+        return commands[commandValue];
+    }
+
+    function getCommandCode(commandValue) {
+        const codes = {
+            "1": 0x10,
+            "2": 0x01,
+            "3": 0x0F,
+            "4": 0x11,
+            "5": 0x20,
+            "6": 0x30,
+            "7": 0x21,
+            "8": 0x31,
+            "9": 0x41,
+            "10": 0x42
+        };
+        return codes[commandValue];
+    }
+
+    function logMessage(msg, elem) {
         const line = document.createElement("div");
         line.textContent = msg;
-        log.appendChild(line);
-        log.scrollTop = log.scrollHeight;
+        elem.appendChild(line);
+        elem.scrollTop = socketLog.scrollHeight;
     }
 </script>
 
