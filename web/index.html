@@ -65,10 +65,11 @@
         }
         // Device Data
         if (pkt.type === 1) {
-            if (pkt.command === 2) {
-                logMessage(("Location: " + pkt.data), locationLog);
+            if (pkt.command === 0x02) {
+                const entries = Object.entries(pkt.data).map(([key, value]) => `${key} : ${value}`);
+                logMessage(entries.join(", "), locationLog);
             } else {
-                // Handle()
+                logMessage("✔ command sent", socketLog);
             }
         }
     };
@@ -88,7 +89,7 @@
 
         if (commandValue) {
             socket.send([commandName, commandCode.toString(16).toUpperCase()]);
-            logMessage("➡️ Sent command: " + commandName + " (Code: 0x" + commandCode.toString(16).toUpperCase() + ")", socketLog);
+            logMessage("‼️ Sending command: " + commandName + " (Code: 0x" + commandCode.toString(16).toUpperCase() + ")", socketLog);
         }
     }
 
@@ -111,15 +112,15 @@
     function getCommandCode(commandValue) {
         const codes = {
             "1": 0x10,
-            "2": 0x01,
-            "3": 0x0F,
-            "4": 0x11,
-            "5": 0x20,
-            "6": 0x30,
-            "7": 0x21,
-            "8": 0x31,
-            "9": 0x41,
-            "10": 0x42
+            "2": 0x11,
+            "3": 0x12,
+            "4": 0x13,
+            "5": 0x14,
+            "6": 0x15,
+            "7": 0x16,
+            "8": 0x17,
+            "9": 0x18,
+            "10": 0x19
         };
         return codes[commandValue];
     }

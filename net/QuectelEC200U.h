@@ -12,6 +12,21 @@
 #include "logger.h"
 #include "packet.h"
 
+using namespace gps;
+
+enum Command {
+    STOP_ENGINE = 0x10,
+    REQUEST_LOCATION = 0x11,
+    SOS_ALERT = 0x12,
+    REBOOT = 0x13,
+    CHECK_SIGNAL = 0x14,
+    SET_GEO_FENCE = 0x15,
+    QUERY_STATUS = 0x16,
+    CONFIG_APN = 0x17,
+    REQUEST_VIN = 0x18,
+    ENGINE_STATUS = 0x19
+};
+
 class QuectelEC200USimulator {
 public:
     explicit QuectelEC200USimulator(const std::string &filename)
@@ -90,17 +105,52 @@ public:
             std::string payload = modem.readLine();
             Logger::log(gps::LogLevel::ALARM, "[Simulated Modem][MSG]", payload);
             Packet pkt = Packet::parsePacket(payload);
-            pkt.printPacket();
             // Main Routine
             //FIXME: checksum validation
             if (!pkt.valid && pkt.type == 0x02) {
                 switch (pkt.command) {
-                    case 0x10: // STOP engine
-                        Logger::log(gps::LogLevel::INFO, "[Simulated Modem][EXE]", "Engine Stooped Successfully");
-                        // do_STOP_ENGINE();
+                    case STOP_ENGINE:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "STOP_ENGINE Successfully Executed");
+                        // Implement STOP_ENGINE functionality here
+                        break;
+                    case REQUEST_LOCATION:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "REQUEST_LOCATION Requested");
+                        // Implement REQUEST_LOCATION functionality here
+                        break;
+                    case SOS_ALERT:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "SOS_ALERT Triggered");
+                        // Implement SOS_ALERT functionality here
+                        break;
+                    case REBOOT:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "REBOOT Initiated");
+                        // Implement REBOOT functionality here
+                        break;
+                    case CHECK_SIGNAL:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "CHECK_SIGNAL Checked");
+                        // Implement CHECK_SIGNAL functionality here
+                        break;
+                    case SET_GEO_FENCE:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "SET_GEO_FENCE Set");
+                        // Implement SET_GEO_FENCE functionality here
+                        break;
+                    case QUERY_STATUS:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "QUERY_STATUS Queried");
+                        // Implement QUERY_STATUS functionality here
+                        break;
+                    case CONFIG_APN:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "CONFIG_APN Configured");
+                        // Implement CONFIG_APN functionality here
+                        break;
+                    case REQUEST_VIN:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "REQUEST_VIN Requested");
+                        // Implement REQUEST_VIN functionality here
+                        break;
+                    case ENGINE_STATUS:
+                        Logger::log(INFO, "[Simulated Modem][EXE]", "ENGINE_STATUS Checked");
+                        // Implement ENGINE_STATUS functionality here
                         break;
                     default:
-                        Logger::log(gps::LogLevel::ERROR, "[Simulated Modem][ERR]", "Command Not Recognized");
+                        Logger::log(ERROR, "[Simulated Modem][ERR]", "Command Not Recognized");
                         break;
                 }
             }

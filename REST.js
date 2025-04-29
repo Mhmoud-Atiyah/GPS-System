@@ -7,6 +7,40 @@ const net = require('net');
 const PORT = 3000;
 const fifoPath = "EC200U_pipe";
 
+function parseGPRMC(sentence) {
+    const parts = sentence.split(",");
+    if (parts[0] !== "$GPRMC" || parts[2] !== "A") return null;
+
+    const timeStr = parts[1];
+    const latStr = parts[3];
+    const latDir = parts[4];
+    const lonStr = parts[5];
+    const lonDir = parts[6];
+    const dateStr = parts[9];
+
+    function convertCoord(coord, dir) {
+        const degrees = parseInt(coord.slice(0, -7), 10);
+        const minutes = parseFloat(coord.slice(-7));
+        let decimal = degrees + minutes / 60;
+        if (dir === "S" || dir === "W") decimal = -decimal;
+        return decimal;
+    }
+
+    const latitude = convertCoord(latStr, latDir);
+    const longitude = convertCoord(lonStr, lonDir);
+
+    const day = dateStr.slice(0, 2);
+    const month = dateStr.slice(2, 4);
+    const year = "20" + dateStr.slice(4, 6);
+    const date = new Date(`${year}-${month}-${day}T${timeStr.slice(0, 2)}:${timeStr.slice(2, 4)}:${timeStr.slice(4, 6)}Z`);
+
+    return {
+        time: date,
+        latitude,
+        longitude
+    };
+}
+
 function hexStringToBytes(hexStr) {
     const bytes = [];
     for (let i = 0; i < hexStr.length; i += 2) {
@@ -157,6 +191,10 @@ client.on('data', (data) => {
      * Main Routine
      * *********/
     const pkt = parsePacket(unwrapped);
+    // Parse Location Data
+    if (pkt.type === 1 && pkt.command === 0x02) {
+        pkt.data = parseGPRMC(pkt.data);
+    }
     // Forward the data to all connected WebSocket clients
     wss.clients.forEach((ws) => {
         if (ws.readyState === WebSocket.OPEN) {
@@ -204,16 +242,16 @@ wss.on("connection", (ws) => {
     // Main Routine
     ws.on("message", (message) => {
         const [commandName, commandCode] = message.toString().split(',');
-        console.log("Received from Client:", message.toString());
+        console.log("Received From   Client  :", message.toString());
         const pkt = new Packet(commandCode, commandName);
         const pktHEX = pkt.createPacket();
         const MSG = `+QIURC: "recv",0,${pktHEX.length}\n${pktHEX}\n`;
         writeToFifo(fifoPath, MSG);
-        ws.send("ACK: " + message);
+        ws.send(JSON.stringify({type: 1, command: 0x10, data: MSG}));
     });
 
     ws.on("close", () => {
-        console.log("Device disconnected");
+        console.log("Client disconnected");
     });
 });
 // Start the server
